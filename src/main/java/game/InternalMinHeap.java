@@ -1,6 +1,10 @@
 package game;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * An instance is a priority queue of elements of type E implemented as a min-heap.
@@ -11,19 +15,19 @@ class InternalMinHeap<E> {
 
   /**
    * The heap invariant is given below. Note that / denotes int division.
-   * <p>
-   * b[0..size-1] is viewed as a min-heap, i.e.
-   * 1. Each array element in b[0..size-1] contains a value of the heap.
-   * 2. The children of each b[i] are b[2i+1] and b[2i+2].
-   * 3. The parent of each b[i] (except b[0]) is b[(i-1)/2].
-   * 4. The priority of the parent of each b[i] is <= the priority of b[i].
-   * 5. Priorities for the b[i] used for the comparison in point 4
+   * 
+   * <p>lst[0..size-1] is viewed as a min-heap, i.e.
+   * 1. Each array element in lst[0..size-1] contains a value of the heap.
+   * 2. The children of each lst[i] are lst[2i+1] and lst[2i+2].
+   * 3. The parent of each lst[i] (except lst[0]) is lst[(i-1)/2].
+   * 4. The priority of the parent of each lst[i] is <= the priority of lst[i].
+   * 5. Priorities for the lst[i] used for the comparison in point 4
    * are given in map. map contains one entry for each element of
    * the heap, and map and b have the same size.
    * For each element e in the heap, the map entry contains in the
-   * Info object the priority of e and its index in b.
+   * Info object the priority of e and its index in b.</p>
    */
-  private List<E> b = new ArrayList<>();
+  private List<E> lst = new ArrayList<>();
   private Map<E, Info> map = new HashMap<>();
 
   /**
@@ -54,7 +58,7 @@ class InternalMinHeap<E> {
       throw new IllegalArgumentException("Cannot insert the same element twice");
     }
 
-    b.add(e);
+    lst.add(e);
     map.put(e, new Info(size, p));
     size++;
     bubbleUp(size - 1);
@@ -67,10 +71,10 @@ class InternalMinHeap<E> {
    * priority queue is empty.
    */
   public E peek() {
-    if (b.isEmpty()) {
+    if (lst.isEmpty()) {
       throw new NoSuchElementException();
     }
-    return b.get(0);
+    return lst.get(0);
   }
 
   /**
@@ -84,10 +88,10 @@ class InternalMinHeap<E> {
     map.remove(val);
     size--;
     if (size <= 0) {
-      b.remove(0);
+      lst.remove(0);
     } else {
-      b.set(0, b.get(size));
-      b.remove(size);
+      lst.set(0, lst.get(size));
+      lst.remove(size);
       bubbleDown(0);
     }
     return val;
@@ -115,64 +119,64 @@ class InternalMinHeap<E> {
 
 
   /**
-   * Bubble b[k] up in heap to its right place.
-   * Precondition: Every b[i] satisfies the heap property except perhaps
+   * Bubble lst[k] up in heap to its right place.
+   * Precondition: Every lst[i] satisfies the heap property except perhaps
    * k's priority < parent's priority
    */
   private void bubbleUp(int k) {
-    E val = b.get(k);
+    E val = lst.get(k);
     Info info = map.get(val);
 
     int i = k;
     while (i > 0) {
       int parentIdx = (i - 1) / 2;
-      E parentVal = b.get(parentIdx);
+      E parentVal = lst.get(parentIdx);
       Info parentInfo = map.get(parentVal);
 
       if (parentInfo.priority <= info.priority) {
         break;
       }
 
-      b.set(i, parentVal);
+      lst.set(i, parentVal);
       parentInfo.index = i;
 
       i = parentIdx;
     }
-    b.set(i, val);
+    lst.set(i, val);
     info.index = i;
   }
 
   /**
-   * Bubble b[k] down in heap until it finds the right place.
-   * Precondition: Every b[i] satisfies the heap property except perhaps
+   * Bubble lst[k] down in heap until it finds the right place.
+   * Precondition: Every lst[i] satisfies the heap property except perhaps
    * k's priority > a child's priority.
    */
   private void bubbleDown(int k) {
-    E val = b.get(k);
+    E val = lst.get(k);
     Info info = map.get(val);
 
     int i = k;
     while (2 * i + 1 < size) {
       int childIdx = getSmallerChild(i);
-      E childVal = b.get(childIdx);
+      E childVal = lst.get(childIdx);
       Info childInfo = map.get(childVal);
 
       if (info.priority <= childInfo.priority) {
         break;
       }
 
-      b.set(i, childVal);
+      lst.set(i, childVal);
       childInfo.index = i;
 
       i = childIdx;
     }
-    b.set(i, val);
+    lst.set(i, val);
     info.index = i;
   }
 
   /**
-   * Return the index of the smaller child of b[q]
-   * Precondition: left child exists: 2q+1 < size of heap
+   * Return the index of the smaller child of lst[q].
+   * Precondition: left child exists: 2q+1 < size of heap.
    */
   private int getSmallerChild(int q) {
     int leftIdx = 2 * q + 1;
@@ -181,8 +185,8 @@ class InternalMinHeap<E> {
       return leftIdx;
     }
 
-    Info leftInfo = map.get(b.get(leftIdx));
-    Info rightInfo = map.get(b.get(rightIdx));
+    Info leftInfo = map.get(lst.get(leftIdx));
+    Info rightInfo = map.get(lst.get(rightIdx));
     return (leftInfo.priority <= rightInfo.priority ? leftIdx : rightIdx);
   }
 
@@ -194,7 +198,7 @@ class InternalMinHeap<E> {
     private double priority; // priority of this element
 
     /**
-     * Constructor: an instance in b[i] with priority p.
+     * Constructor: an instance in lst[i] with priority p.
      */
     private Info(int i, double p) {
       index = i;

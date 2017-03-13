@@ -8,15 +8,15 @@ import java.util.Map;
 public class Edge {
 
   /**
-   * The length of this edge
+   * The length of this edge.
    */
   public final int length;
   /**
-   * The Node this edge is coming from
+   * The Node this edge is coming from.
    */
   private final Node src;
   /**
-   * The node this edge is going to
+   * The node this edge is going to.
    */
   private final Node dest;
 
@@ -53,7 +53,7 @@ public class Edge {
   }
 
   /**
-   * Return the length of this <tt>Edge</tt>
+   * Return the length of this <tt>Edge</tt>.
    */
   public int length() {
     return length;

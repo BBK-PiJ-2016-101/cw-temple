@@ -1,17 +1,18 @@
 package gui;
 
+import static gui.Constants.ROOT;
+
 import game.Cavern;
 import game.Cavern.Direction;
 import game.Node;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
 
-import static gui.Constants.ROOT;
+import javax.swing.JPanel;
 
 /**
  * Responsible for managing the explorer and drawing it on the screen.
@@ -20,32 +21,44 @@ import static gui.Constants.ROOT;
 public class ExplorerSprite extends JPanel {
   private static final long serialVersionUID = 1L;
 
-  private Sprite sprite;                      //Sprite class to handle animating the explorer
+  //Sprite class to handle animating the explorer
+  private Sprite sprite;                      
+  //Width (in pixels) of a single explorer image on the spritesheet
+  private final int spriteWidth = 29;  
+  //Height (in pixels) if a single explorer image on the spritesheet
+  private final int spriteHeight = 36;            
 
-  private int SPRITE_WIDTH = 29;              //Width (in pixels) of a single explorer image on the spritesheet
-  private int SPRITE_HEIGHT = 36;             //Height (in pixels) if a single explorer image on the spritesheet
+  //Explorer's row index (updates only once move completes)
+  private int row;  
+  //Explorer's column index (updates only once move completes)                          
+  private int col;     
+  //x-coordinate (pixels)                       
+  private int posX;       
+  //y-coordinate(pixels)                    
+  private int posY;                   
+  //List of moves we need to make to get to the goal location        
+  private BlockingQueue<MovePair> queuedMoves;
+  //Which direction is the explorer currently facing?
+  private Cavern.Direction dir = Direction.NORTH;  
+  //Allow our moveTo to block until complete.     
+  private Semaphore blockUntilDone;          
 
-  private int row;                            //Explorer's row index (updates only once move completes)
-  private int col;                            //Explorer's column index (updates only once move completes)
-  private int posX;                           //x-coordinate (pixels)
-  private int posY;                           //y-coordinate(pixels)
-  private BlockingQueue<MovePair> queuedMoves;//List of moves we need to make to get to the goal location
-  private Cavern.Direction dir = Direction.NORTH;       //Which direction is the explorer currently facing?
-  private Semaphore blockUntilDone;           //Allow our moveTo to block until complete.
+  //Thread that updates explorer's location
+  private Thread updateThread;        
+  //Thread that updates explorer's animation        
+  private Thread animationUpdateThread;       
 
-  private Thread updateThread;                //Thread that updates explorer's location
-  private Thread animationUpdateThread;       //Thread that updates explorer's animation
-
-  private double ANIMATION_FPS = 10;    //Number of animation frames displayed per second
-
-  private static final String SPRITESHEET = ROOT + "explorer_sprites.png";    //Location of the spritesheet image
+  //Number of animation frames displayed per second
+  private static final double ANIMATION_FPS = 10;    
+  //Location of the spritesheet image
+  private static final String SPRITESHEET = ROOT + "explorer_sprites.png";    
 
   /**
    * Constructor:  an instance with player;'s starting position (startRow, startCol).
    */
   public ExplorerSprite(int startRow, int startCol) {
     //Initialize fields
-    sprite = new Sprite(SPRITESHEET, SPRITE_WIDTH, SPRITE_HEIGHT, 3);
+    sprite = new Sprite(SPRITESHEET, spriteWidth, spriteHeight, 3);
     queuedMoves = new SynchronousQueue<MovePair>();
     blockUntilDone = new Semaphore(0);
 
@@ -111,8 +124,9 @@ public class ExplorerSprite extends JPanel {
    * Return the image representing the current state of the explorer.
    */
   public BufferedImage sprite() {
-        /* Use the direction to determine which offset into the
-         * spritesheet to use. Class Sprite handles animation. */
+    /* Use the direction to determine which offset into the
+     * spritesheet to use. Class Sprite handles animation. 
+     */
     switch (dir) {
       case NORTH:
         return sprite.getSprite(0, 0);
@@ -143,16 +157,18 @@ public class ExplorerSprite extends JPanel {
     return col;
   }
 
-  /* Tell the explorer to move from its current location to dst.
+  /** 
+   * Tell the explorer to move from its current location to dst.
    * After making move, calling thread will block until move completes on GUI.
    * Precondition: dst must be adjacent to the current location and not currently moving.
-   * May throw an InterruptedException */
+   * May throw an InterruptedException 
+   */
   public void moveTo(Node dst) throws InterruptedException {
     dir = getDirection(row, col, dst.getTile().getRow(), dst.getTile().getColumn());
 
     //Determine sequence of moves to add to queue to get to goal
-    int xDiff = (dst.getTile().getColumn() - col) * MazePanel.TILE_WIDTH;
-    int yDiff = (dst.getTile().getRow() - row) * MazePanel.TILE_HEIGHT;
+    final int xDiff = (dst.getTile().getColumn() - col) * MazePanel.TILE_WIDTH;
+    final int yDiff = (dst.getTile().getRow() - row) * MazePanel.TILE_HEIGHT;
     queuedMoves.put(new MovePair(xDiff, yDiff));
 
     blockUntilDone.acquire();
@@ -173,8 +189,8 @@ public class ExplorerSprite extends JPanel {
    */
   private void update(int framesPerMove, int framesIntoMove, MovePair move) {
     //Make the move toward our destination
-    posX = MazePanel.TILE_WIDTH * getCol() + (framesIntoMove * move.xDiff) / framesPerMove;
-    posY = MazePanel.TILE_HEIGHT * getRow() + (framesIntoMove * move.yDiff) / framesPerMove;
+    posX = MazePanel.TILE_WIDTH * getCol() + (framesIntoMove * move.xcoordDiff) / framesPerMove;
+    posY = MazePanel.TILE_HEIGHT * getRow() + (framesIntoMove * move.ycoordDiff) / framesPerMove;
     repaint();
   }
 
@@ -183,10 +199,18 @@ public class ExplorerSprite extends JPanel {
    * If already there, return the current direction.
    */
   private Direction getDirection(int row, int col, int goalRow, int goalCol) {
-    if (goalRow < row) return Direction.NORTH;
-    if (goalRow > row) return Direction.SOUTH;
-    if (goalCol < col) return Direction.WEST;
-    if (goalCol > col) return Direction.EAST;
+    if (goalRow < row) {
+      return Direction.NORTH;
+    }
+    if (goalRow > row) {
+      return Direction.SOUTH;
+    }
+    if (goalCol < col) {
+      return Direction.WEST;
+    }
+    if (goalCol > col) {
+      return Direction.EAST;
+    }
     return dir;
   }
 
@@ -194,8 +218,8 @@ public class ExplorerSprite extends JPanel {
    * Store information that uniquely represents a move we can make.
    */
   private class MovePair {
-    final int xDiff;
-    final int yDiff;
+    final int xcoordDiff;
+    final int ycoordDiff;
 
     /**
      * Constructor: an instance with change (Xdiff, yDiff).
@@ -203,9 +227,9 @@ public class ExplorerSprite extends JPanel {
      * @param xChange The change in the x coordinate to make this move
      * @param yChange The change in the y coordinate to make this move
      */
-    public MovePair(int xChange, int yChange) {
-      xDiff = xChange;
-      yDiff = yChange;
+    public MovePair(int xcoordChange, int ycoordChange) {
+      xcoordDiff = xcoordChange;
+      ycoordDiff = ycoordChange;
     }
   }
 }

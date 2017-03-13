@@ -2,16 +2,16 @@ package game;
 
 public class Tile {
   /**
-   * The row and column position of the GameNode
+   * The row and column position of the GameNode.
    */
   private final int row;
   private final int col;
   /**
-   * Amount of gold on this Node
+   * Amount of gold on this Node.
    */
   private final int gold;
   /**
-   * The Type of Tile of this Node
+   * The Type of Tile of this Node.
    */
   private Type type;
   private boolean goldPickedUp;
@@ -65,7 +65,7 @@ public class Tile {
   /**
    * Set the Type of this Tile to t.
    */
-    /* package */ void setType(Type t) {
+  void setType(Type t) {
     type = t;
   }
 

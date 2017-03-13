@@ -12,7 +12,7 @@ public class NodeStatus implements Comparable<NodeStatus> {
   /**
    * Constructor: an instnce with id nodeId and distance dist.
    */
-    /* package */ NodeStatus(long nodeId, int dist) {
+  NodeStatus(long nodeId, int dist) {
     id = nodeId;
     distance = dist;
   }

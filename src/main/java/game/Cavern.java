@@ -1,6 +1,17 @@
 package game;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.Random;
+import java.util.Set;
+
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,8 +38,10 @@ public class Cavern {
   /**
    * Constructor: an instance of size (rws, cls) .
    * Use rand as a source of randomness for the cavern generation.
-   * Use {@code edgeWeightGenerator} and {@code goldGenerator} to generate edge weights and gold values.
-   * Precondition: {@code targetType} must be either {@code Tile.Type.ORB} or {@code Tile.Type.ENTRANCE}.
+   * Use {@code edgeWeightGenerator} and {@code goldGenerator} to generate edge weights and 
+   * gold values.
+   * Precondition: {@code targetType} must be either {@code Tile.Type.ORB} or 
+   * {@code Tile.Type.ENTRANCE}.
    */
   private Cavern(int rws,
                  int cls,
@@ -41,9 +54,11 @@ public class Cavern {
 
     graph = generateGraph(rand, targetType, goldGenerator);
 
-    entrance = graph.stream().filter((n) -> n.getTile().getType() == Tile.Type.ENTRANCE).findAny().get();
+    entrance = graph.stream().filter((n) -> 
+      n.getTile().getType() == Tile.Type.ENTRANCE).findAny().get();
 
-    target = graph.stream().filter((n) -> n.getTile().getType() == targetType).findAny().get();
+    target = graph.stream().filter((n) -> 
+      n.getTile().getType() == targetType).findAny().get();
 
     // Set tiles for the floor and then add walls wherever floor is missing.
     tiles = new Node[rows][cols];
@@ -77,7 +92,8 @@ public class Cavern {
 
     graph = Collections.unmodifiableSet(givenGraph);
 
-    entrance = graph.stream().filter((n) -> n.getTile().getType() == Tile.Type.ENTRANCE).findAny().get();
+    entrance = graph.stream().filter((n) -> 
+      n.getTile().getType() == Tile.Type.ENTRANCE).findAny().get();
 
     target = trgt;
   }
@@ -109,12 +125,15 @@ public class Cavern {
    * It is guaranteed that (currentRow, currentCol}) will be an open floor cell.
    * Use rand as a source of randomness for the cavern generation.
    */
-  public static Cavern digEscapeCavern(int rows, int cols, int currentRow, int currentCol, Random rand) {
+  public static Cavern digEscapeCavern(int rows, int cols, int currentRow, 
+                                       int currentCol, Random rand) {
     Supplier<Integer> edgeWeightGen = () -> rand.nextInt(MAX_EDGE_WEIGHT) + 1;
     Supplier<Integer> goldGen = () -> Cavern.generateGoldValue(rand);
-    Cavern potentialCavern = new Cavern(rows, cols, rand, edgeWeightGen, goldGen, Tile.Type.ENTRANCE);
+    Cavern potentialCavern = 
+        new Cavern(rows, cols, rand, edgeWeightGen, goldGen, Tile.Type.ENTRANCE);
     while (potentialCavern.getTileAt(currentRow, currentCol).getType() != Tile.Type.FLOOR) {
-      potentialCavern = new Cavern(rows, cols, rand, edgeWeightGen, goldGen, Tile.Type.ENTRANCE);
+      potentialCavern = 
+        new Cavern(rows, cols, rand, edgeWeightGen, goldGen, Tile.Type.ENTRANCE);
     }
     return potentialCavern;
   }
@@ -144,7 +163,7 @@ public class Cavern {
     String[] dimensions = infoParts[0].split(":");
     int rows = Integer.parseInt(dimensions[0]);
     int cols = Integer.parseInt(dimensions[1]);
-    long targetId = Long.parseLong(infoParts[1].split(":")[1]);
+    final long targetId = Long.parseLong(infoParts[1].split(":")[1]);
 
     Map<Long, Node> idToNode = new HashMap<>();
     for (String nodeStr : nodeStrList) {
@@ -209,25 +228,27 @@ public class Cavern {
 
         final Point p = new Point(i, j);
         Stream.of(Direction.SOUTH, Direction.EAST)
-          .map(Direction::getPoint)
-          .map(p::add)
-          .map((q) -> tiles[q.row][q.col])
-          .filter((m) -> m.getTile().getType() != Tile.Type.WALL)
-          .forEach((m) -> {
-            int weight = edgeWeightGenerator.get();
-            node.addEdge(new Edge(node, m, weight));
-            m.addEdge(new Edge(m, node, weight));
-          });
+            .map(Direction::getPoint)
+            .map(p::add)
+            .map((q) -> tiles[q.row][q.col])
+            .filter((m) -> m.getTile().getType() != Tile.Type.WALL)
+            .forEach((m) -> {
+              int weight = edgeWeightGenerator.get();
+              node.addEdge(new Edge(node, m, weight));
+              m.addEdge(new Edge(m, node, weight));
+            });
       }
     }
   }
 
   /**
-   * Return true iff p is on the grid
+   * Return true iff p is on the grid.
    */
   private boolean isValid(Point p) {
-    return p.row > 0 && p.row < rows - 1 &&
-             p.col > 0 && p.col < cols - 1;
+    return p.row > 0 
+      && p.row < rows - 1 
+      && p.col > 0 
+      && p.col < cols - 1;
   }
 
   /**
@@ -243,7 +264,7 @@ public class Cavern {
 
     Set<Point> pointsSeen = new HashSet<>();
     Set<Point> openPoints = new HashSet<>();
-    Queue<Node> frontier = new ArrayDeque<>();
+    final Queue<Node> frontier = new ArrayDeque<>();
 
     Point entrancePoint = getEntrancePoint(rand);
     Node entrance = new Node(new Tile(entrancePoint.row, entrancePoint.col, 0, Tile.Type.ENTRANCE));
@@ -271,14 +292,15 @@ public class Cavern {
         }
       }
 
-      int nExits = newExits.size();
-      if (nExits > 0) {
+      int numberOfExits = newExits.size();
+      if (numberOfExits > 0) {
         double modifiedDensity;
         Point forcedExit;
         // Modify the density function so that the expected number of open exits
         // is the same even though we're forcing something to be open.
         if (existingExits < 2) {
-          modifiedDensity = (nExits == 1 ? 0.0 : (nExits * DENSITY - 1) / (nExits - 1));
+          modifiedDensity = 
+            (numberOfExits == 1 ? 0.0 : (numberOfExits * DENSITY - 1) / (numberOfExits - 1));
           forcedExit = newExits.get(rand.nextInt(newExits.size()));
         } else {
           modifiedDensity = DENSITY;
@@ -402,11 +424,11 @@ public class Cavern {
         return pathWeights.get(f.getId());
       }
 
-      int nWeight = pathWeights.get(f.getId());
+      int numberOfWeight = pathWeights.get(f.getId());
 
       for (Edge e : f.getExits()) {
         Node w = e.getOther(f);
-        int weightThroughN = nWeight + e.length();
+        int weightThroughN = numberOfWeight + e.length();
         Integer existingWeight = pathWeights.get(w.getId());
         if (existingWeight == null) {
           pathWeights.put(w.getId(), weightThroughN);
@@ -429,7 +451,8 @@ public class Cavern {
     nodes.add(rows + ":" + cols + ",trgt:" + target.getId());
     for (Node n : graph) {
       Tile t = n.getTile();
-      String nodeStr = n.getId() + "," + t.getRow() + "," + t.getColumn() + "," + t.getGold() + "," + t.getType().name();
+      String nodeStr = n.getId() + "," + t.getRow() + "," + t.getColumn() 
+          + "," + t.getGold() + "," + t.getType().name();
 
       String edges = n.getExits().stream()
                        .map((e) -> e.getOther(n).getId() + "-" + e.length())
@@ -486,8 +509,12 @@ public class Cavern {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (!(o instanceof Point)) return false;
+      if (this == o) { 
+        return true; 
+      }
+      if (!(o instanceof Point)) { 
+        return false; 
+      }
       Point p = (Point) o;
       return p.row == row && p.col == col;
     }

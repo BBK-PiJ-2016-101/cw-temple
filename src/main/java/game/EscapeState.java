@@ -9,9 +9,9 @@ import java.util.Collection;
  * Once you have determined how you want to escape, you can call
  * moveTo(Node) to move to each node, and pickUpGold() to collect
  * gold on your way out.
- * <p>
- * An EscapeState provides all of the information necessary to
- * escape from the cavern and collect gold on the way.
+ * 
+ * <p>An EscapeState provides all of the information necessary to
+ * escape from the cavern and collect gold on the way.</p>
  */
 public interface EscapeState {
   /**
@@ -39,9 +39,9 @@ public interface EscapeState {
   /**
    * Picks up any gold on the current tile.
    * You must first check that there is gold before picking it up.
-   * <p>
-   * Throw an IllegalStateException if there is no gold at the current location,
-   * either because there never was any or because you picked it up already.
+   * 
+   * <p>Throw an IllegalStateException if there is no gold at the current location,
+   * either because there never was any or because you picked it up already.</p>
    */
   void pickUpGold();
 

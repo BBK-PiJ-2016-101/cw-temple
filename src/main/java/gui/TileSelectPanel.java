@@ -1,5 +1,7 @@
 package gui;
 
+import static gui.Constants.ROOT;
+
 import game.Node;
 
 import javax.imageio.ImageIO;
@@ -9,8 +11,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
-import static gui.Constants.ROOT;
+import java.net.URISyntaxException;
 
 /**
  * An instance is a panel that displays information about a currently selected Tile.
@@ -57,8 +58,8 @@ public class TileSelectPanel extends JPanel {
 
     //Load content
     try {
-      background = ImageIO.read(new File(BACKGROUND_PATH));
-    } catch (IOException e) {
+      background = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(BACKGROUND_PATH).toURI()));
+    } catch (IOException | URISyntaxException e) {
       throw new IllegalArgumentException("Can't find input file : " + e.toString());
     }
   }

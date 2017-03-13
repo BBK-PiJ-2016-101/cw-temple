@@ -1,15 +1,28 @@
 package game;
 
+import static game.Constants.EXTRA_TIME_FACTOR;
+import static game.Constants.MAX_BONUS;
+import static game.Constants.MAX_COLS;
+import static game.Constants.MAX_ROWS;
+import static game.Constants.MIN_BONUS;
+import static game.Constants.MIN_COLS;
+import static game.Constants.MIN_ROWS;
+import static game.Constants.NO_BONUS_LENGTH;
+
 import gui.GUI;
-import student.Explorer;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 
-import static game.Constants.*;
+import student.Explorer;
 
 public class GameState implements ExplorationState, EscapeState {
 
@@ -30,6 +43,9 @@ public class GameState implements ExplorationState, EscapeState {
   private boolean escapeErrored = false;
   private int minTimeToExplore;
 
+  /**
+   * Represents the current state of the game.
+   */
   public GameState(Path exploreCavernPath, Path escapeCavernPath) throws IOException {
     exploreCavern = Cavern.deserialize(Files.readAllLines(exploreCavernPath));
     minTimeToExplore = exploreCavern.minPathLengthToTarget(exploreCavern.getEntrance());
@@ -45,7 +61,8 @@ public class GameState implements ExplorationState, EscapeState {
     seed = -1;
 
     stage = Stage.EXPLORE;
-    gui = Optional.of(new GUI(exploreCavern, position.getTile().getRow(), position.getTile().getColumn(), 0));
+    gui = Optional.of(new GUI(exploreCavern, position.getTile().getRow(), 
+        position.getTile().getColumn(), 0));
   }
 
   /**
@@ -61,12 +78,12 @@ public class GameState implements ExplorationState, EscapeState {
    */
   private GameState(long seed, boolean useGui) {
     Random rand = new Random(seed);
-    int ROWS = rand.nextInt(MAX_ROWS - MIN_ROWS + 1) + MIN_ROWS;
-    int COLS = rand.nextInt(MAX_COLS - MIN_COLS + 1) + MIN_COLS;
-    exploreCavern = Cavern.digExploreCavern(ROWS, COLS, rand);
+    final int rows = rand.nextInt(MAX_ROWS - MIN_ROWS + 1) + MIN_ROWS;
+    final int cols = rand.nextInt(MAX_COLS - MIN_COLS + 1) + MIN_COLS;
+    exploreCavern = Cavern.digExploreCavern(rows, cols, rand);
     minTimeToExplore = exploreCavern.minPathLengthToTarget(exploreCavern.getEntrance());
     Tile orbTile = exploreCavern.getTarget().getTile();
-    escapeCavern = Cavern.digEscapeCavern(ROWS, COLS, orbTile.getRow(), orbTile.getColumn(), rand);
+    escapeCavern = Cavern.digEscapeCavern(rows, cols, orbTile.getRow(), orbTile.getColumn(), rand);
 
     position = exploreCavern.getEntrance();
     stepsTaken = 0;
@@ -86,6 +103,9 @@ public class GameState implements ExplorationState, EscapeState {
     }
   }
 
+  /**
+   * Start running a new game.
+   */
   public static int runNewGame(long seed, boolean useGui) {
     GameState state;
     if (seed != 0) {
@@ -104,7 +124,9 @@ public class GameState implements ExplorationState, EscapeState {
   private void run() {
     // TODO: In the error cases we should really pop something up!
     explore();
-    if (!exploreSucceeded) return;
+    if (!exploreSucceeded) {
+      return;
+    }
     escape();
   }
 
@@ -125,8 +147,10 @@ public class GameState implements ExplorationState, EscapeState {
         output(gui, "Your solution to explore returned at the wrong location.");
       }
     } catch (Throwable t) {
-      output(gui, "Your code caused an error  during the explore phase. Please see console output.");
-      System.err.println("We will move on to the escape phase anyway, but your solution is not correct!");
+      output(gui, "Your code caused an error  during the explore phase." 
+          + " Please see console output.");
+      System.err.println("We will move on to the escape phase anyway,"
+          + " but your solution is not correct!");
       System.err.println("Here is the error that occurred.");
       t.printStackTrace();
       exploreErrored = true;
@@ -170,11 +194,12 @@ public class GameState implements ExplorationState, EscapeState {
   }
 
   /**
-   * Return the time to escape
+   * Return the time to escape.
    */
   private int computeTimeToEscape() {
     int minTimeToEscape = escapeCavern.minPathLengthToTarget(position);
-    return (int) (minTimeToEscape + EXTRA_TIME_FACTOR * (Cavern.MAX_EDGE_WEIGHT + 1) * escapeCavern.numOpenTiles() / 2);
+    return (int) (minTimeToEscape + EXTRA_TIME_FACTOR 
+        * (Cavern.MAX_EDGE_WEIGHT + 1) * escapeCavern.numOpenTiles() / 2);
 
   }
 
@@ -183,13 +208,15 @@ public class GameState implements ExplorationState, EscapeState {
    */
   private double computeBonusFactor() {
     double exploreDiff = (stepsTaken - minTimeToExplore) / (double) minTimeToExplore;
-    if (exploreDiff <= 0) return MAX_BONUS;
-    double multDiff = MAX_BONUS - MIN_BONUS;
-    return Math.max(MIN_BONUS, MAX_BONUS - exploreDiff / NO_BONUS_LENGTH * multDiff);
+    if (exploreDiff <= 0) {
+      return MAX_BONUS;
+    }
+    return Math.max(MIN_BONUS, MAX_BONUS - exploreDiff 
+        / NO_BONUS_LENGTH * (MAX_BONUS - MIN_BONUS));
   }
 
   /**
-   * See moveTo(Node&lt;TileData&gt; n)
+   * See moveTo(Node&lt;TileData&gt; n).
    *
    * @param id The Id of the neighbouring Node to move to
    */
@@ -210,6 +237,35 @@ public class GameState implements ExplorationState, EscapeState {
     }
     throw new IllegalArgumentException("moveTo: Node must be adjacent to position");
   }
+
+  /**
+   * Attempts to move the explorer from the current position to
+   * the <tt>Node</tt> <tt>n</tt>. Throws an <tt>IllegalArgumentException</tt>
+   * if <tt>n</tt> is not neighbouring. Increments the steps taken
+   * if successful.
+   *
+   * @param n A neighbouring <tt>Node</tt>
+   */
+  @Override
+  public void moveTo(Node n) {
+    if (stage != Stage.ESCAPE) {
+      throw new IllegalStateException("moveTo(Node) can only be called when escaping!");
+    }
+    int distance = position.getEdge(n).length;
+    if (timeRemaining - distance < 0) {
+      throw new OutOfTimeException();
+    }
+
+    if (position.getNeighbours().contains(n)) {
+      position = n;
+      timeRemaining -= distance;
+      gui.ifPresent((g) -> g.updateTimeRemaining(timeRemaining));
+      gui.ifPresent((g) -> g.moveTo(n));
+    } else {
+      throw new IllegalArgumentException("moveTo: Node must be adjacent to position");
+    }
+  }
+
 
   /**
    * Returns the unique id of the current location.
@@ -261,8 +317,8 @@ public class GameState implements ExplorationState, EscapeState {
   @Override
   public Node getCurrentNode() {
     if (stage != Stage.ESCAPE) {
-      throw new IllegalStateException("getCurrentNode: Error, " +
-                                        "current Node may not be accessed unless in ESCAPE");
+      throw new IllegalStateException("getCurrentNode: Error, " 
+          + "current Node may not be accessed unless in ESCAPE");
     }
     return position;
   }
@@ -270,8 +326,8 @@ public class GameState implements ExplorationState, EscapeState {
   @Override
   public Node getExit() {
     if (stage != Stage.ESCAPE) {
-      throw new IllegalStateException("getEntrance: Error, " +
-                                        "current Node may not be accessed unless in ESCAPE");
+      throw new IllegalStateException("getEntrance: Error, " 
+          + "current Node may not be accessed unless in ESCAPE");
     }
     return escapeCavern.getTarget();
   }
@@ -279,38 +335,10 @@ public class GameState implements ExplorationState, EscapeState {
   @Override
   public Collection<Node> getVertices() {
     if (stage != Stage.ESCAPE) {
-      throw new IllegalStateException("getVertices: Error, " +
-                                        "Vertices may not be accessed unless in ESCAPE");
+      throw new IllegalStateException("getVertices: Error, " 
+          + "Vertices may not be accessed unless in ESCAPE");
     }
     return Collections.unmodifiableSet(escapeCavern.getGraph());
-  }
-
-  /**
-   * Attempts to move the explorer from the current position to
-   * the <tt>Node</tt> <tt>n</tt>. Throws an <tt>IllegalArgumentException</tt>
-   * if <tt>n</tt> is not neighbouring. Increments the steps taken
-   * if successful.
-   *
-   * @param n A neighbouring <tt>Node</tt>
-   */
-  @Override
-  public void moveTo(Node n) {
-    if (stage != Stage.ESCAPE) {
-      throw new IllegalStateException("moveTo(Node) can only be called when escaping!");
-    }
-    int distance = position.getEdge(n).length;
-    if (timeRemaining - distance < 0) {
-      throw new OutOfTimeException();
-    }
-
-    if (position.getNeighbours().contains(n)) {
-      position = n;
-      timeRemaining -= distance;
-      gui.ifPresent((g) -> g.updateTimeRemaining(timeRemaining));
-      gui.ifPresent((g) -> g.moveTo(n));
-    } else {
-      throw new IllegalArgumentException("moveTo: Node must be adjacent to position");
-    }
   }
 
   @Override

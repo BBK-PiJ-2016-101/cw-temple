@@ -1,5 +1,8 @@
 package gui;
 
+import static game.Constants.MAX_BONUS;
+import static gui.Constants.ROOT;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -8,10 +11,9 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 
-import static game.Constants.MAX_BONUS;
-import static gui.Constants.ROOT;
 
 public class OptionsPanel extends JPanel implements ActionListener {
   private static final long serialVersionUID = 1L;
@@ -90,8 +92,8 @@ public class OptionsPanel extends JPanel implements ActionListener {
 
     //Load content
     try {
-      background = ImageIO.read(new File(BACKGROUND_PATH));
-    } catch (IOException e) {
+      background = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(BACKGROUND_PATH).toURI()));
+    } catch (IOException | URISyntaxException e) {
       throw new IllegalArgumentException("Can't find input file : " + e.toString());
     }
   }

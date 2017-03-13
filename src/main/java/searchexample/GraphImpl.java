@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class GraphImpl implements Graph {
   private final List nodes = new ArrayList();
-  private final Map<Node, List<Node>> adjMap = new ConcurrentHashMap();
+  private final Map<Node, List<Node>> adjMap = new ConcurrentHashMap<>();
   private Node rootNode;
 
   @Override

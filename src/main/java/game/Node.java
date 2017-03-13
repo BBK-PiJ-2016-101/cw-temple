@@ -10,16 +10,16 @@ import java.util.Set;
  */
 public class Node {
   /**
-   * The least positive fresh identifier available
+   * The least positive fresh identifier available.
    */
   private static long FRESH_ID = 0;
 
   /**
-   * The unique numerical identifier of this Node
+   * The unique numerical identifier of this Node.
    */
   private final long id;
   /**
-   * Represents the edges outgoing from this Node
+   * Represents the edges outgoing from this Node.
    */
   private final Set<Edge> edges;
   private final Set<Node> neighbours;
@@ -28,7 +28,7 @@ public class Node {
   private final Set<Node> unmodifiableNeighbours;
 
   /**
-   * Extra state that belongs to this node
+   * Extra state that belongs to this node.
    */
   private final Tile tile;
 
@@ -37,9 +37,9 @@ public class Node {
   }
 
   /**
-   * Constructor: an instance with id givenId and tile t
+   * Constructor: an instance with id givenId and tile t.
    */
-    /* package */ Node(long givenId, Tile t) {
+  Node(long givenId, Tile t) {
     id = givenId;
     FRESH_ID = Math.max(FRESH_ID, givenId + 1);
     edges = new HashSet<>();
@@ -54,7 +54,7 @@ public class Node {
   /**
    * Add edge e to the graph.
    */
-    /* package */ void addEdge(Edge e) {
+  void addEdge(Edge e) {
     edges.add(e);
     neighbours.add(e.getOther(this));
   }

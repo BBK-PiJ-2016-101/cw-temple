@@ -4,6 +4,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 /**
  * Maintains\ information about a sprite for the GUI. A sprite is defined by a spritesheet,
@@ -27,8 +28,8 @@ public class Sprite {
     tileHeight = height;
     this.cycleSize = cycleSize;
     try {
-      spriteSheet = ImageIO.read(new File(imageLoc));
-    } catch (IOException e) {
+      spriteSheet = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(imageLoc).toURI()));
+    } catch (IOException | URISyntaxException e) {
       throw new IllegalArgumentException("Creating sprite failed. " + imageLoc + " not found.");
     }
   }

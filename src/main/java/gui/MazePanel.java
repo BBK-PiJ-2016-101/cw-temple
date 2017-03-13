@@ -12,6 +12,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import static gui.Constants.ROOT;
 
@@ -69,14 +70,17 @@ public class MazePanel extends JPanel {
 
     //Load content
     try {
-      path = ImageIO.read(new File(PATH_PATH));
-      wall = ImageIO.read(new File(WALL_PATH));
-      orb = ImageIO.read(new File(ORB_PATH));
+      path = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(PATH_PATH).toURI()));
+      
+      wall = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(WALL_PATH).toURI()));
+      
+      orb = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(ORB_PATH).toURI()));
+
       coinSheet = new Sprite(COIN_PATH, 32, 32, 1);
-      entrance = ImageIO.read(new File(ENTRANCE_PATH));
-      tasty = ImageIO.read(new File(TASTY_PATH));
-      background = ImageIO.read(new File(BACKGROUND_PATH));
-    } catch (IOException e) {
+      entrance = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(ENTRANCE_PATH).toURI()));
+      tasty = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(TASTY_PATH).toURI()));
+      background = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(BACKGROUND_PATH).toURI()));
+    } catch (IOException | URISyntaxException e) {
       throw new IllegalArgumentException("Can't find input file : " + e.toString());
     }
 
