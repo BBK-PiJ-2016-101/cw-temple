@@ -1,10 +1,10 @@
 package gui;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import javax.imageio.ImageIO;
 
 /**
  * Maintains\ information about a sprite for the GUI. A sprite is defined by a spritesheet,
@@ -12,12 +12,17 @@ import java.net.URISyntaxException;
  * animate the sprite.
  */
 public class Sprite {
-  private BufferedImage spriteSheet;    //The entire spritesheet
-  private int tileWidth;                //Width of a single image on the spritesheet
-  private int tileHeight;                //Height of a single image on the spritesheet
+  //The entire spritesheet
+  private BufferedImage spriteSheet;   
+  //Width of a single image on the spritesheet 
+  private int tileWidth;       
+  //Height of a single image on the spritesheet         
+  private int tileHeight;                
 
-  private int cycleSize;                //How many images make up a single animation?
-  private int cycle = 0;                //Which cycle of the animation are we at now? (in [0, cycleSize - 1])
+  //How many images make up a single animation?
+  private int cycleSize;     
+  //Which cycle of the animation are we at now? (in [0, cycleSize - 1])           
+  private int cycle = 0;                
 
   /**
    * Constructor: an instance with image at imageLoc, of size (width, height),
@@ -28,9 +33,11 @@ public class Sprite {
     tileHeight = height;
     this.cycleSize = cycleSize;
     try {
-      spriteSheet = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(imageLoc).toURI()));
+      spriteSheet = ImageIO.read(new File(ClassLoader.getSystemClassLoader()
+          .getResource(imageLoc).toURI()));
     } catch (IOException | URISyntaxException e) {
-      throw new IllegalArgumentException("Creating sprite failed. " + imageLoc + " not found.");
+      throw new IllegalArgumentException("Creating sprite failed. " 
+          + imageLoc + " not found.");
     }
   }
 
@@ -43,15 +50,17 @@ public class Sprite {
 
   /**
    * Return offset (dRow, dCol) into the spritesheet. Assumes that (dRow, dCol) is the base offset,
-   * and subsequent animations are at (dRow, dCol + 1), (dRow, dCol + 2) ... (dRow, dCol + cycleSize - 1)
+   * and subsequent animations are at (dRow, dCol + 1), (dRow, dCol + 2) 
+   * ... (dRow, dCol + cycleSize - 1)
    *
-   * @param dRow the number of rows to offset into the spritesheet for the first animation
-   * @param dCol the number of columns to offset into the spritesheet  for the first animation
+   * @param numRow the number of rows to offset into the spritesheet for the first animation
+   * @param numCol the number of columns to offset into the spritesheet  for the first animation
    */
-  public BufferedImage getSprite(int dRow, int dCol) {
+  public BufferedImage getSprite(int numRow, int numCol) {
     if (spriteSheet == null) {
       throw new IllegalArgumentException("Can't get sprite until you've initialized sprite sheet.");
     }
-    return spriteSheet.getSubimage((dCol + cycle) * tileWidth, dRow * tileHeight, tileWidth, tileHeight);
+    return spriteSheet.getSubimage((numCol + cycle) * tileWidth, 
+        numRow * tileHeight, tileWidth, tileHeight);
   }
 }

@@ -5,7 +5,7 @@ import game.GameState;
 import java.util.Optional;
 
 /**
- * Run this program to see a demonstration of the GUI interface
+ * Run this program to see a demonstration of the GUI interface.
  */
 public class GUImain {
   /**

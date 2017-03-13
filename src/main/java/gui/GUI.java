@@ -4,11 +4,14 @@ import game.Cavern;
 import game.Node;
 import game.Tile;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 
 /**
  * An instance is a GUI for the game.
@@ -29,32 +32,36 @@ public class GUI extends JFrame implements Constants {
   private TileSelectPanel tileSelect;     //Panel that provides more info on seleced tile
   private JLayeredPane master;            //The panel that holds all other panels
 
-  /* Constructor a new display for cavern canvern with the player at (playerRow, playerCol)
-   * using randomg number seed seed. */
+  /** 
+   * Constructor a new display for cavern canvern with the player at (playerRow, playerCol)
+   * using randomg number seed seed. 
+   */
   public GUI(Cavern cavern, int playerRow, int playerCol, long seed) {
     //Initialize frame
     setSize(screenWidth, screenHeight);
     setLocation(150, 150);
 
-    int GAME_WIDTH = (int) (GAME_WIDTH_PROP * screenWidth);
-    int GAME_HEIGHT = (int) (GAME_HEIGHT_PROP * screenHeight);
+    int gameWidth = (int) (GAME_WIDTH_PROP * screenWidth);
+    int gameHeight = (int) (GAME_HEIGHT_PROP * screenHeight);
 
     //Create the maze
-    mazePanel = new MazePanel(cavern, GAME_WIDTH, GAME_HEIGHT, this);
-    mazePanel.setBounds(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    mazePanel = new MazePanel(cavern, gameWidth, gameHeight, this);
+    mazePanel.setBounds(0, 0, gameWidth, gameHeight);
     mazePanel.setVisited(playerRow, playerCol);
 
     //Create the explorer
     explorer = new ExplorerSprite(playerRow, playerCol);
-    explorer.setBounds(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    explorer.setBounds(0, 0, gameWidth, gameHeight);
     explorer.setOpaque(false);
 
     //Create the panel for stats and options
-    options = new OptionsPanel(GAME_WIDTH, 0, screenWidth - GAME_WIDTH, (int) (screenHeight * INFO_SIZE), seed);
+    options = new OptionsPanel(gameWidth, 0, screenWidth - gameWidth, 
+        (int) (screenHeight * INFO_SIZE), seed);
 
     //Create the panel for tile information
-    tileSelect = new TileSelectPanel(GAME_WIDTH, (int) (screenHeight * INFO_SIZE),
-                                      screenWidth - GAME_WIDTH, (int) (screenHeight * (1 - INFO_SIZE)), this);
+    tileSelect = new TileSelectPanel(gameWidth, (int) (screenHeight * INFO_SIZE),
+                                      screenWidth - gameWidth, 
+                                      (int) (screenHeight * (1 - INFO_SIZE)), this);
 
     //Layer the explorer and maze into master panel
     master = new JLayeredPane();
@@ -74,15 +81,15 @@ public class GUI extends JFrame implements Constants {
       public void componentResized(ComponentEvent e) {
         screenWidth = getWidth();
         screenHeight = getHeight();
-        int GAME_WIDTH = (int) (GAME_WIDTH_PROP * screenWidth);
-        int GAME_HEIGHT = (int) (GAME_HEIGHT_PROP * screenHeight);
-        mazePanel.updateScreenSize(GAME_WIDTH, GAME_HEIGHT);
-        mazePanel.setBounds(0, 0, GAME_WIDTH, GAME_HEIGHT);
-        explorer.setBounds(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        int gameWidth = (int) (GAME_WIDTH_PROP * screenWidth);
+        int gameHeight = (int) (GAME_HEIGHT_PROP * screenHeight);
+        mazePanel.updateScreenSize(gameWidth, gameHeight);
+        mazePanel.setBounds(0, 0, gameWidth, gameHeight);
+        explorer.setBounds(0, 0, gameWidth, gameHeight);
         explorer.repaint();
-        options.setBounds(GAME_WIDTH, 0, screenWidth - GAME_WIDTH, (int) (screenHeight * INFO_SIZE));
-        tileSelect.updateLoc(GAME_WIDTH, (int) (screenHeight * INFO_SIZE),
-          screenWidth - GAME_WIDTH, (int) (screenHeight * (1 - INFO_SIZE)));
+        options.setBounds(gameWidth, 0, screenWidth - gameWidth, (int) (screenHeight * INFO_SIZE));
+        tileSelect.updateLoc(gameWidth, (int) (screenHeight * INFO_SIZE),
+            screenWidth - gameWidth, (int) (screenHeight * (1 - INFO_SIZE)));
       }
 
       @Override
@@ -130,7 +137,7 @@ public class GUI extends JFrame implements Constants {
   }
 
   /**
-   * Update the bonus multiplier as displayed by the GUI by bonus
+   * Update the bonus multiplier as displayed by the GUI by bonus.
    */
   public void updateBonus(double bonus) {
     options.updateBonus(bonus);
@@ -156,7 +163,7 @@ public class GUI extends JFrame implements Constants {
   }
 
   /**
-   * What is the specification?
+   * Update the state of the Cavern.
    */
   public void updateCavern(Cavern c, int numStepsRemaining) {
     mazePanel.setCavern(c);

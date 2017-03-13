@@ -2,6 +2,9 @@ package searchexample;
 
 public class Driver {
 
+  /**
+   * Main driver program.
+   */
   public static void main(final String[] args) {
 
     //Lets create nodes

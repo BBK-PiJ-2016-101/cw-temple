@@ -1,20 +1,21 @@
 package gui;
 
+import static gui.Constants.ROOT;
+
 import game.Cavern;
 import game.Node;
 import game.Tile;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-
-import static gui.Constants.ROOT;
+import javax.imageio.ImageIO;
+import javax.swing.JPanel;
 
 /**
  * An instance is responsible for drawing the underlying maze on the screen.
@@ -24,33 +25,49 @@ import static gui.Constants.ROOT;
 public class MazePanel extends JPanel {
   private static final long serialVersionUID = 1L;
 
-  private static final String ORB_PATH = ROOT + "orb.png";           //Path to orb image
-  private static final String PATH_PATH = ROOT + "path.png";         //Path to image representing path
-  private static final String WALL_PATH = ROOT + "wall.png";         //Path to wall image
-  private static final String COIN_PATH = ROOT + "coins.png";        //Path to the coin image
-  private static final String ENTRANCE_PATH = ROOT + "entrance.png"; //Path to the entrance image
+  //Path to orb image
+  private static final String ORB_PATH = ROOT + "orb.png";   
+  //Path to image representing path        
+  private static final String PATH_PATH = ROOT + "path.png";         
+  //Path to wall image
+  private static final String WALL_PATH = ROOT + "wall.png";  
+  //Path to the coin image
+  private static final String COIN_PATH = ROOT + "coins.png";        
+  //Path to the entrance image
+  private static final String ENTRANCE_PATH = ROOT + "entrance.png"; 
   private static final String TASTY_PATH = ROOT + "notes.txt";
   private static final String BACKGROUND_PATH = ROOT + "info_texture.png";
-  private static final float DARK_FACTOR = 0.3f; //How dark should dark path be? Lower values means darker
+  //How dark should dark path be? Lower values means darker
+  private static final float DARK_FACTOR = 0.3f; 
   private static final int COIN_SPRITES_PER_ROW = 7;
   private static final int COIN_SPRITES_PER_COL = 2;
 
-  public static int TILE_WIDTH;       //The width (in pixels) of a tile on the grid
-  public static int TILE_HEIGHT;      //The height (in pixels) of a tile on the grid
+  //The width (in pixels) of a tile on the grid
+  public static int TILE_WIDTH;       
+  //The height (in pixels) of a tile on the grid
+  public static int TILE_HEIGHT;      
 
-  private final BufferedImage path;   //Image representing an area the explorer can walk on
-  private final BufferedImage wall;   //Image representing a blocked area
-  private final BufferedImage orb;    //Image representing the orb
+  //Image representing an area the explorer can walk on
+  private final BufferedImage path; 
+  //Image representing a blocked area  
+  private final BufferedImage wall;   
+  //Image representing the orb
+  private final BufferedImage orb;    
   private final BufferedImage entrance;
   private final BufferedImage tasty;
-  private final Sprite coinSheet;        //Image representing a coin spritesheet
+
+  //Image representing a coin spritesheet
+  private final Sprite coinSheet;        
   private BufferedImage background;
-  private Cavern cavern;              //Representation of the graph/level
-  private boolean[][] visited;         //Contains the nodes already visited
-  private Color darkness;                           //Color to place over unvisited paths
+  //Representation of the graph/level
+  private Cavern cavern;          
+  //Contains the nodes already visited    
+  private boolean[][] visited;        
+  //Color to place over unvisited paths 
+  private Color darkness;                           
 
   /**
-   * Create a new MazePanel of a given size
+   * Create a new MazePanel of a given size.
    *
    * @param cav          The Cavern to display
    * @param screenWidth  The width of the panel, in pixels
@@ -70,16 +87,22 @@ public class MazePanel extends JPanel {
 
     //Load content
     try {
-      path = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(PATH_PATH).toURI()));
+      path = ImageIO.read(new File(ClassLoader.getSystemClassLoader()
+          .getResource(PATH_PATH).toURI()));
       
-      wall = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(WALL_PATH).toURI()));
+      wall = ImageIO.read(new File(ClassLoader.getSystemClassLoader()
+          .getResource(WALL_PATH).toURI()));
       
-      orb = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(ORB_PATH).toURI()));
+      orb = ImageIO.read(new File(ClassLoader.getSystemClassLoader()
+          .getResource(ORB_PATH).toURI()));
 
       coinSheet = new Sprite(COIN_PATH, 32, 32, 1);
-      entrance = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(ENTRANCE_PATH).toURI()));
-      tasty = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(TASTY_PATH).toURI()));
-      background = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(BACKGROUND_PATH).toURI()));
+      entrance = ImageIO.read(new File(ClassLoader.getSystemClassLoader()
+          .getResource(ENTRANCE_PATH).toURI()));
+      tasty = ImageIO.read(new File(ClassLoader.getSystemClassLoader()
+          .getResource(TASTY_PATH).toURI()));
+      background = ImageIO.read(new File(ClassLoader.getSystemClassLoader()
+          .getResource(BACKGROUND_PATH).toURI()));
     } catch (IOException | URISyntaxException e) {
       throw new IllegalArgumentException("Can't find input file : " + e.toString());
     }
@@ -101,7 +124,7 @@ public class MazePanel extends JPanel {
   }
 
   /**
-   * Set the cavern to c
+   * Set the cavern to c.
    */
   void setCavern(Cavern c) {
     cavern = c;
@@ -162,11 +185,16 @@ public class MazePanel extends JPanel {
    */
   public BufferedImage getGoldIcon(Node n) {
     double gold = n.getTile().getGold();
-    if (gold == Cavern.TASTY_VALUE) return tasty;
+    if (gold == Cavern.TASTY_VALUE) {
+      return tasty;
+    }
+    
     gold *= ((double) COIN_SPRITES_PER_ROW * COIN_SPRITES_PER_COL) / Cavern.MAX_GOLD_VALUE;
+    
     int spriteIndex = (int) gold;
     int rowIndex = spriteIndex / COIN_SPRITES_PER_ROW;
     int colIndex = spriteIndex % COIN_SPRITES_PER_ROW;
+    
     return coinSheet.getSprite(rowIndex, colIndex);
   }
 
@@ -188,33 +216,31 @@ public class MazePanel extends JPanel {
         if (cavern.getTileAt(row, col).getType() != Tile.Type.WALL) {
           //Draw the path image to the background
           page.drawImage(path, TILE_WIDTH * col, TILE_HEIGHT * row,
-            TILE_WIDTH, TILE_HEIGHT, null);
+              TILE_WIDTH, TILE_HEIGHT, null);
           //Darken this tile if we haven't been there yet
           if (!visited[row][col]) {
             page.fillRect(TILE_WIDTH * col, TILE_HEIGHT * row,
-              TILE_WIDTH, TILE_HEIGHT);
+                TILE_WIDTH, TILE_HEIGHT);
           }
           //If this is the goal, draw the orb
           if (cavern.getTileAt(row, col).getType() == Tile.Type.ORB) {
             page.drawImage(orb, TILE_WIDTH * col, TILE_HEIGHT * row,
-              TILE_WIDTH, TILE_HEIGHT, null);
+                TILE_WIDTH, TILE_HEIGHT, null);
           }
           //If there is a coin here, draw it
           if (cavern.getTileAt(row, col).getGold() > 0) {
             page.drawImage(getGoldIcon(cavern.getNodeAt(row, col)),
-              TILE_WIDTH * col, TILE_HEIGHT * row,
-              TILE_WIDTH, TILE_HEIGHT, null);
+                TILE_WIDTH * col, TILE_HEIGHT * row,
+                TILE_WIDTH, TILE_HEIGHT, null);
           }
           //If this tile is the entrance, draw the graphic
           if (cavern.getTileAt(row, col).getType() == Tile.Type.ENTRANCE) {
             page.drawImage(entrance, TILE_WIDTH * col, TILE_HEIGHT * row,
-              TILE_WIDTH, TILE_HEIGHT, null);
+                TILE_WIDTH, TILE_HEIGHT, null);
           }
-        }
-        //This is a wall
-        else {
+        } else { //This is a wall
           page.drawImage(wall, TILE_WIDTH * col, TILE_HEIGHT * row,
-            TILE_WIDTH, TILE_HEIGHT, null);
+              TILE_WIDTH, TILE_HEIGHT, null);
         }
       }
     }

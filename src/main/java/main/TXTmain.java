@@ -12,6 +12,9 @@ import java.util.Optional;
  * Runs the program via the text (console) interface.
  */
 public class TXTmain {
+  /**
+   * Driver.
+   */
   public static void main(String[] args) throws IOException {
     List<String> argList = new ArrayList<>(Arrays.asList(args));
     int repeatNumberIndex = argList.indexOf("-n");
@@ -23,6 +26,7 @@ public class TXTmain {
         System.err.println("Couldn't parse argument for -n option");
       }
     }
+    
     Optional<Long> seed = Utilities.parseSeedArgs(args);
 
     int totalScore = 0;
@@ -32,8 +36,8 @@ public class TXTmain {
       System.out.println();
     }
 
-    if (totalScore != 0) System.out.println("Average score : " + totalScore / numTimesToRun);
+    if (totalScore != 0) {
+      System.out.println("Average score : " + totalScore / numTimesToRun);
+    }
   }
-
-
 }

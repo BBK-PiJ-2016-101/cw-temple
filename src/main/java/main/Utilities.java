@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Utility routine(s) used by the main "driver" programs
+ * Utility routine(s) used by the main "driver" programs.
  */
 public class Utilities {
   static Optional<Long> parseSeedArgs(String... args) {

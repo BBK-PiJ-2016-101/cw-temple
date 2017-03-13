@@ -4,14 +4,18 @@ import static gui.Constants.ROOT;
 
 import game.Node;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import javax.imageio.ImageIO;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 /**
  * An instance is a panel that displays information about a currently selected Tile.
@@ -40,13 +44,20 @@ public class TileSelectPanel extends JPanel {
   private static final double ROW_COL_Y = 0.60;
   //Height proportion at which to display the amount of gold
   private static final double GOLD_HEIGHT = 0.70;
-  private BufferedImage background;        //Background for options pane
-  private String BACKGROUND_PATH = ROOT + "info_texture.png";            //Location of background image
-  private JLabel instructions;            //Tells user how to use this panel
-  private GUI gui;                        //Information about the larger GUI
-  private Node selectedNode;        //The currently selected node
+  //Background for options pane
+  private BufferedImage background;        
+  //Location of background image
+  private static final String BACKGROUND_PATH = ROOT + "info_texture.png";            
+  //Tells user how to use this panel
+  private JLabel instructions;            
+  //Information about the larger GUI
+  private GUI gui;                        
+  //The currently selected node
+  private Node selectedNode;        
 
-  /* Constructor: an instance at (x, y) with size (width, height) on Guie gui. */
+  /** 
+   * Constructor: an instance at (x, y) with size (width, height) on Guie gui. 
+   */
   public TileSelectPanel(int x, int y, int width, int height, GUI gui) {
     this.gui = gui;
 
@@ -58,7 +69,8 @@ public class TileSelectPanel extends JPanel {
 
     //Load content
     try {
-      background = ImageIO.read(new File(ClassLoader.getSystemClassLoader().getResource(BACKGROUND_PATH).toURI()));
+      background = ImageIO.read(new File(ClassLoader.getSystemClassLoader()
+          .getResource(BACKGROUND_PATH).toURI()));
     } catch (IOException | URISyntaxException e) {
       throw new IllegalArgumentException("Can't find input file : " + e.toString());
     }
@@ -107,7 +119,7 @@ public class TileSelectPanel extends JPanel {
 
     //Draw the rectangle outline the information panel
     page.drawRect((int) (RECT_X * getWidth()), (int) (RECT_Y * getHeight()),
-      (int) (RECT_WIDTH * getWidth()), (int) (RECT_HEIGHT * getHeight()));
+        (int) (RECT_WIDTH * getWidth()), (int) (RECT_HEIGHT * getHeight()));
 
     //Display information about a node if one is present
     if (selectedNode != null) {
@@ -115,18 +127,18 @@ public class TileSelectPanel extends JPanel {
       String text = selectedNode.getTile().getType().toString();
       page.setFont(new Font("default", Font.BOLD, FONT_SIZE));
       int x = getTextXForCenter((Graphics2D) page, text, (int) (RECT_X * getWidth()),
-        (int) (RECT_WIDTH * getWidth()));
+          (int) (RECT_WIDTH * getWidth()));
       page.drawString(text, x, (int) (TYPE_HEIGHT * getHeight()));
 
       //Draw the image
       BufferedImage pic = gui.getIcon(selectedNode.getTile().getType());
       page.drawImage(pic, (int) (IMAGE_X * getWidth()), (int) (IMAGE_Y * getHeight()),
-        (int) (IMAGE_WIDTH * getWidth()), (int) (IMAGE_HEIGHT * getHeight()), null);
+          (int) (IMAGE_WIDTH * getWidth()), (int) (IMAGE_HEIGHT * getHeight()), null);
       //Draw the coin image
       if (selectedNode.getTile().getGold() > 0) {
         BufferedImage coinPic = gui.getGoldIcon(selectedNode);
         page.drawImage(coinPic, (int) (IMAGE_X * getWidth()), (int) (IMAGE_Y * getHeight()),
-          (int) (IMAGE_WIDTH * getWidth()), (int) (IMAGE_HEIGHT * getHeight()), null);
+            (int) (IMAGE_WIDTH * getWidth()), (int) (IMAGE_HEIGHT * getHeight()), null);
       }
 
       //Coordinates
