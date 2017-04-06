@@ -39,7 +39,8 @@ dependencies {
 
 //mainClassName = "main.GUImain"
 //mainClassName = "main.TXTmain"
-mainClassName = "searchexample.Driver"
+//mainClassName = "searchexample.Driver"
+mainClassName = "searchexample.Maze"
 
 
 jdepend {
