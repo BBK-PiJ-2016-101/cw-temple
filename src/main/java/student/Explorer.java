@@ -2,9 +2,24 @@ package student;
 
 import game.EscapeState;
 import game.ExplorationState;
+import game.NodeStatus;
+import game.Node;
+import game.Edge;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.Stack;
+import java.util.Set;
 
 public class Explorer {
 
+    ExplorationState theExplorationState = null;
+    EscapeState theEscapeState = null;
+
+    long thePreviousNode = 0;
+    
   /**
    * Explore the cavern, trying to find the orb in as few steps as possible.
    * Once you find the orb, you must return from the function in order to pick
@@ -35,9 +50,97 @@ public class Explorer {
    *
    * @param state the information available at the current state
    */
-  public void explore(ExplorationState state) {
-    //TODO:
-  }
+    public void explore(ExplorationState state) {
+	this.theExplorationState = state;
+	List visited = new ArrayList();
+	visited.add(this.theExplorationState.getCurrentLocation());
+	Stack<NodeStatus> depthFirstPath = new Stack();
+	Stack<NodeStatus> depthFirstStack = NeighbourStack(this.theExplorationState);
+	while (depthFirstStack.empty() == false) {
+	    NodeStatus nextNode = depthFirstStack.pop();
+	    if (! visited.contains(nextNode.getId())) {
+		// If the nextNode is adjacent, move to it, otherwise, rewind
+		List neighbourIds = new ArrayList();
+		for (NodeStatus neighbour : this.theExplorationState.getNeighbours()) {
+		    neighbourIds.add(neighbour.getId());
+		}
+		if (neighbourIds.contains(nextNode.getId())) {
+		    this.theExplorationState.moveTo(nextNode.getId());		    
+		} else {
+		    NodeStatus rewindHead = null;
+		    depthFirstPath.pop();
+		    System.out.println(nextNode.getId());
+		    while (!neighbourIds.contains(nextNode.getId())) {
+			System.out.println("Rewinding to " + depthFirstPath.peek().getId());
+			rewindHead = depthFirstPath.pop();
+			this.theExplorationState.moveTo(rewindHead.getId());
+			neighbourIds = new ArrayList();
+			for (NodeStatus neighbour : this.theExplorationState.getNeighbours()) {
+			    neighbourIds.add(neighbour.getId());
+			}
+		    }
+		    System.out.println("Rewound to " + theExplorationState.getCurrentLocation());
+		    // Put this back on the path so as not to disjoint it if we rewind to the same place twice
+		    depthFirstPath.push(rewindHead);
+		    this.theExplorationState.moveTo(nextNode.getId());
+		}
+		System.out.println("Moved to " + this.theExplorationState.getCurrentLocation());
+		System.out.println("The Orb is " + this.theExplorationState.getDistanceToTarget() + "  tiles away");
+		visited.add(this.theExplorationState.getCurrentLocation());
+		depthFirstPath.push(nextNode);
+		System.out.println("Pushed " + nextNode.getId() + " to the path stack");
+		if (this.theExplorationState.getDistanceToTarget() == 0) {
+		    System.out.println("The orb is at " + this.theExplorationState.getCurrentLocation());
+		    break;
+		}
+		for (NodeStatus neighbour : this.theExplorationState.getNeighbours()) {
+		    depthFirstStack.push(neighbour);
+		}
+	    }
+	}
+    }
+    
+
+    private Stack NeighbourStack(ExplorationState state) {
+	Stack<NodeStatus> neighbourStack = new Stack();
+	for (NodeStatus neighbour : state.getNeighbours()) {
+	    neighbourStack.push(neighbour);
+	}
+	return neighbourStack;
+    }
+
+    private Stack NeighbourStack(ExplorationState state, Stack stack) {
+	for (NodeStatus neighbour : state.getNeighbours()) {
+	    stack.push(neighbour);
+	}
+	return stack;
+    }
+    
+    private void randomStep(int repeat) {
+	thePreviousNode = theExplorationState.getCurrentLocation();
+	for (; repeat > 0; repeat--) {
+	    Collection<NodeStatus> neighbours = theExplorationState.getNeighbours();
+	    List<NodeStatus> neighbourList = new ArrayList<NodeStatus>();
+	    for (NodeStatus neighbour : neighbours) {
+		System.out.println(neighbour.getId() + " is my neighbour");
+		neighbourList.add(neighbour);
+	    }
+	    Random rand = new Random();
+	    int nextRand = rand.nextInt(neighbourList.size() + 1);
+	    NodeStatus nextNeighbour = neighbourList.get(nextRand);
+	    if (neighbourList.size() > 1) {
+		while (nextNeighbour.getId() == thePreviousNode) {
+		    nextRand = rand.nextInt(neighbourList.size() + 1);
+		    nextNeighbour = neighbourList.get(nextRand);
+		}
+	    } else {
+		break;
+	    }
+	    theExplorationState.moveTo(nextNeighbour.getId());
+	    System.out.println("Moved to " + theExplorationState.getCurrentLocation());
+	    thePreviousNode = theExplorationState.getCurrentLocation();
+	}
+    }
 
   /**
    * Escape from the cavern before the ceiling collapses, trying to collect as much
@@ -63,7 +166,23 @@ public class Explorer {
    *
    * @param state the information available at the current state
    */
-  public void escape(EscapeState state) {
-    //TODO: Escape from the cavern before time runs out
-  }
+
+    public void escape(EscapeState state) {
+	this.theEscapeState = state;
+	Node firstNode = theEscapeState.getCurrentNode();
+	List<Node> neighbours = new ArrayList<Node>(firstNode.getNeighbours());
+	List<Edge> edges = new ArrayList();
+	for (Node neighbour : neighbours) {
+	    edges.add(firstNode.getEdge(neighbour));
+	}
+	for (Edge edge : edges) {
+	    System.out.println("The edge from " + firstNode.getId() + " to " + edge.getDest().getId() + " is " + edge.length + " long");
+	}
+	System.out.println("We have " + this.theEscapeState.getTimeRemaining() + " time remaining");
+	this.theEscapeState.moveTo(neighbours.get(0));
+	System.out.println("We have " + this.theEscapeState.getTimeRemaining() + " time remaining");
+	// For now do the shortest path
+	
+    }
+
 }
