@@ -99,47 +99,13 @@ public class Explorer {
 	    }
 	}
     }
-    
 
     private Stack NeighbourStack(ExplorationState state) {
-	Stack<NodeStatus> neighbourStack = new Stack();
+	Stack<NodeStatus> neighbourStack = new Stack ();
 	for (NodeStatus neighbour : state.getNeighbours()) {
 	    neighbourStack.push(neighbour);
 	}
 	return neighbourStack;
-    }
-
-    private Stack NeighbourStack(ExplorationState state, Stack stack) {
-	for (NodeStatus neighbour : state.getNeighbours()) {
-	    stack.push(neighbour);
-	}
-	return stack;
-    }
-    
-    private void randomStep(int repeat) {
-	thePreviousNode = theExplorationState.getCurrentLocation();
-	for (; repeat > 0; repeat--) {
-	    Collection<NodeStatus> neighbours = theExplorationState.getNeighbours();
-	    List<NodeStatus> neighbourList = new ArrayList<NodeStatus>();
-	    for (NodeStatus neighbour : neighbours) {
-		System.out.println(neighbour.getId() + " is my neighbour");
-		neighbourList.add(neighbour);
-	    }
-	    Random rand = new Random();
-	    int nextRand = rand.nextInt(neighbourList.size() + 1);
-	    NodeStatus nextNeighbour = neighbourList.get(nextRand);
-	    if (neighbourList.size() > 1) {
-		while (nextNeighbour.getId() == thePreviousNode) {
-		    nextRand = rand.nextInt(neighbourList.size() + 1);
-		    nextNeighbour = neighbourList.get(nextRand);
-		}
-	    } else {
-		break;
-	    }
-	    theExplorationState.moveTo(nextNeighbour.getId());
-	    System.out.println("Moved to " + theExplorationState.getCurrentLocation());
-	    thePreviousNode = theExplorationState.getCurrentLocation();
-	}
     }
 
   /**
@@ -181,8 +147,20 @@ public class Explorer {
 	System.out.println("We have " + this.theEscapeState.getTimeRemaining() + " time remaining");
 	this.theEscapeState.moveTo(neighbours.get(0));
 	System.out.println("We have " + this.theEscapeState.getTimeRemaining() + " time remaining");
-	// For now do the shortest path
-	
+	ComparableEdge firstEdge = new ComparableEdge(edges.get(0));
+	ComparableEdge secondEdge = new ComparableEdge(edges.get(1));
+	if (firstEdge.compareTo(secondEdge) < 1) {
+	    System.out.println("Shortest edge is " + firstEdge.innerEdge.length);
+	} else {
+	    System.out.println("Shortest edge is " + secondEdge.innerEdge.length);
+	}
     }
+
+    /*
+    private(EscapeState state, int pathRange) {
+	Node currentNode = state.getCurrentNode();
+	List<Edge> edges = new ArrayList<Edges>(currentNode.getExits());
+    }
+    */
 
 }
