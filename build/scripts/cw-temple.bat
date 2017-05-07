@@ -66,7 +66,7 @@ set CMD_LINE_ARGS=%*
 set CLASSPATH=%APP_HOME%\lib\cw-temple.jar;%APP_HOME%\lib\commons-math3-3.6.1.jar;%APP_HOME%\lib\guava-20.0.jar
 
 @rem Execute cw-temple
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %CW_TEMPLE_OPTS%  -classpath "%CLASSPATH%" main.GUImain %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %CW_TEMPLE_OPTS%  -classpath "%CLASSPATH%" searchexample.Maze %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

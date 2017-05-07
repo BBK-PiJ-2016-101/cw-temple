@@ -18,10 +18,9 @@ import java.util.Arrays;
 
 public class Explorer {
 
+    // Keep class scope references to the states to pass between methods
     ExplorationState theExplorationState = null;
     EscapeState theEscapeState = null;
-
-    long thePreviousNode = 0;
     
   /**
    * Explore the cavern, trying to find the orb in as few steps as possible.
@@ -53,46 +52,73 @@ public class Explorer {
    *
    * @param state the information available at the current state
    */
+
+    // Depth first search to the Orbs
     public void explore(ExplorationState state) {
+	// set the class scope reference
 	this.theExplorationState = state;
+	// mark the first NodeStatus visited
 	List visited = new ArrayList();
 	visited.add(this.theExplorationState.getCurrentLocation());
+	// initialize a new stack to contain steps in the path to date
 	Stack<NodeStatus> depthFirstPath = new Stack();
+	// use NeighbourStack to return a stack of Neighbour objects to start the DFS
 	Stack<NodeStatus> depthFirstStack = NeighbourStack(this.theExplorationState);
+	// visit each neighbour iteratively
 	while (depthFirstStack.empty() == false) {
+	    // get the next neighbour
 	    NodeStatus nextNode = depthFirstStack.pop();
+	    // check it hasn't been visited before
 	    if (! visited.contains(nextNode.getId())) {
-		// If the nextNode is adjacent, move to it, otherwise, rewind
+		// if the nextNode is adjacent, move to it
+		// make a list of neighbour's getId() to test if nextNode's getId() is a member
 		List neighbourIds = new ArrayList();
 		for (NodeStatus neighbour : this.theExplorationState.getNeighbours()) {
 		    neighbourIds.add(neighbour.getId());
 		}
 		if (neighbourIds.contains(nextNode.getId())) {
 		    this.theExplorationState.moveTo(nextNode.getId());		    
-		} else {
+		}
+		// if the nextNode is not adjacent, replay the steps in the path to date
+		// to get to a tile that neighbours the new branch of the DFS
+		// i.e. rewind from the dead end
+		else {
+		    // keep the path step pop'd from the stack in a predictable reference for re-use
 		    NodeStatus rewindHead = null;
+		    // the top of the stack will be current tile, pop it and look at the neighbours
 		    depthFirstPath.pop();
-		    System.out.println(nextNode.getId());
+		    // debug print, should be debug logged
+		    // System.out.println(nextNode.getId());
 		    while (!neighbourIds.contains(nextNode.getId())) {
-			System.out.println("Rewinding to " + depthFirstPath.peek().getId());
+			// move to the previous tile
+			// debug print, should be debug logged
+			// System.out.println("Rewinding to " + depthFirstPath.peek().getId());
 			rewindHead = depthFirstPath.pop();
 			this.theExplorationState.moveTo(rewindHead.getId());
+			// rebuild neighbourIds for the while loop test
 			neighbourIds = new ArrayList();
 			for (NodeStatus neighbour : this.theExplorationState.getNeighbours()) {
 			    neighbourIds.add(neighbour.getId());
 			}
 		    }
-		    System.out.println("Rewound to " + theExplorationState.getCurrentLocation());
-		    // Put this back on the path so as not to disjoint it if we rewind to the same place twice
+		    // Ensure the path is not made disjoint if the same tile is rewound to twice
+		    // Put the rewindHead back on the path, it will be part of the path to the next branch
+		    // The next branch starts at nextNode
+		    // debug print, should be debug logged
+		    // System.out.println("Rewound to " + theExplorationState.getCurrentLocation());
 		    depthFirstPath.push(rewindHead);
 		    this.theExplorationState.moveTo(nextNode.getId());
 		}
-		System.out.println("Moved to " + this.theExplorationState.getCurrentLocation());
-		System.out.println("The Orb is " + this.theExplorationState.getDistanceToTarget() + "  tiles away");
+		// mark nextNode visited and push it to the path stack
+		// debug print, should be debug log
+		// System.out.println("Moved to " + this.theExplorationState.getCurrentLocation());
+		// System.out.println("The Orb is " + this.theExplorationState.getDistanceToTarget() + "  tiles away");
 		visited.add(this.theExplorationState.getCurrentLocation());
 		depthFirstPath.push(nextNode);
-		System.out.println("Pushed " + nextNode.getId() + " to the path stack");
+		// debug print, should be debug log
+		//System.out.println("Pushed " + nextNode.getId() + " to the path stack");
 		if (this.theExplorationState.getDistanceToTarget() == 0) {
+		    // print for unit test
 		    System.out.println("The orb is at " + this.theExplorationState.getCurrentLocation());
 		    break;
 		}
@@ -103,6 +129,8 @@ public class Explorer {
 	}
     }
 
+    // helper method to put getNeighbours in a stack and return them
+    // to build the root DFS level
     private Stack NeighbourStack(ExplorationState state) {
 	Stack<NodeStatus> neighbourStack = new Stack ();
 	for (NodeStatus neighbour : state.getNeighbours()) {
@@ -136,45 +164,66 @@ public class Explorer {
    * @param state the information available at the current state
    */
 
+    // compute Dijkstra's algorithm with a minimum priority queue to escape
+    // pick up gold along the way
     public void escape(EscapeState state) {
+	// set the class scope reference
 	this.theEscapeState = state;
+	// initialize the current node as an object for the Min PQ
 	ComparableNode startNode = new ComparableNode(theEscapeState.getCurrentNode());
+	// set the distance of the start vertex to zero
 	startNode.distance = 0;
+	// construct the Min PQ using an ArrayList of Nodes wrapped in class implementing Comparable for Collections.sort()
 	List<ComparableNode> allNodes = new ArrayList();
 	for (Node node : theEscapeState.getVertices()) {
 	    ComparableNode comparableNode = new ComparableNode(node);
-	    comparableNode.distance = 1000000;
+	    // use an arbitrarily large 'infinity' value, 10^8
+	    comparableNode.distance = 100000000;
 	    allNodes.add(comparableNode);
 	}
 	allNodes.add(startNode);
 	Collections.sort(allNodes);
+	// iteratively relax vertices using Dijsktra's algorithm
+	// CLRS/Introduction to Algoritms 3rd Edition
+	// "24.3 Dijkstra's algorithm" informed iterative implementation
 	List<ComparableNode> relaxedNodes = new ArrayList();
+	// test the Min PQ is not empty and take the nearest vertex
 	while (allNodes.size() != 0) {
 	    ComparableNode thisNode = allNodes.remove(0);
+	    // check if a shorter path is available from here
 	    for (Node neighbour : thisNode.innerNode.getNeighbours()) {
 		int distance = thisNode.innerNode.getEdge(neighbour).length;
+		// find the neighbour in the PQ
 		for (ComparableNode relaxNode : allNodes) {
 		    if (relaxNode.innerNode == neighbour) {
+			// prepare to update by get then set
+			// 'swap' the object at the index with it's updated state
 			int index = allNodes.indexOf(relaxNode);
 			ComparableNode swap = allNodes.get(index);
 			if (swap.distance > thisNode.distance + distance) {
 			    swap.distance = thisNode.distance + distance;
+			    // link this node to it's predecessor in the shortest path for escaping
 			    swap.lastNode = thisNode;
-			    thisNode.nextNode = swap;
 			    allNodes.set(index, swap);
 			}
 		    }
 		}
 	    }
+	    // add this node to the relaxed set
 	    relaxedNodes.add(thisNode);
+	    // sort the PQ to take the next nearest vertex after the loop test
 	    Collections.sort(allNodes);
 	}
+	// sort the vertices by distance from the start
+	// set references to the start and end of the escape path
+	// set reference to the distance from exit
 	Collections.sort(relaxedNodes);
 	ComparableNode relaxedStartNode = null;
 	ComparableNode relaxedExitNode = null;
 	int relaxedExitDistance = 0;
 	for (ComparableNode relaxedNode : relaxedNodes) {
-	    System.out.println("Distance to " + relaxedNode.innerNode.getId() + " is " + relaxedNode.distance);
+	    // debug print, should be debug log
+	    // System.out.println("Distance to " + relaxedNode.innerNode.getId() + " is " + relaxedNode.distance);
 	    if (relaxedNode.innerNode == theEscapeState.getExit()) {
 		relaxedExitDistance = relaxedNode.distance;
 		relaxedExitNode = relaxedNode;
@@ -183,82 +232,44 @@ public class Explorer {
 		relaxedStartNode = relaxedNode;
 	    }
 	}
+	// print distance from the exit for unit test
 	System.out.println("The exit is " + relaxedExitDistance + " distance away");
+	// build the escape path to follow to escape
         ComparableNode pathElement = relaxedExitNode.lastNode;
 	List<Node> nodePath = new ArrayList();
 	while (pathElement != null) {
-	    System.out.println(pathElement.innerNode.getId() + " is " + (relaxedExitDistance - pathElement.distance) + " away from exit ");
+	    // debug print, should be debug log
+	    // System.out.println(pathElement.innerNode.getId() + " is " + (relaxedExitDistance - pathElement.distance) + " away from exit ");
+	    /* debug test print
+	       find where this path intersects current node
+	       it's not obvious from the code above that the escape path includes the current node
+	       which cannot be moveTo()'d
+	       and not the exit itself
+	       which must be moveTo()'d explicitly as a last step
 	    if (pathElement.innerNode.getNeighbours().contains(theEscapeState.getCurrentNode())) {
 		System.out.println("And is a neighbour");
 	    }
+	    */
+	    // add the path and look ahead
 	    nodePath.add(pathElement.innerNode);
 	    pathElement = pathElement.lastNode;
 	}
+	// path is in reverse order, and contains the current node
+	// reverse it and remove the head
 	Collections.reverse(nodePath);
 	nodePath.remove(0);
-	/*
-	for (int i = nodePath.size() - 1; i >= 0; i--) { 
-	    theEscapeState.moveTo(nodePath.get(i));
-	    System.out.println("I moved to " + nodePath.get(i).getId());
-	}
-	*/
+
+	// follow the escape path
 	for (Node pathNode : nodePath) {
-	    System.out.println("Moving to " + pathNode.getId());
+	    // test for and pick up gold on the current tile
+	    if (theEscapeState.getCurrentNode().getTile().getGold() > 0) {
+		theEscapeState.pickUpGold();
+	    }
+	    // debug print, should be debug log
+	    // System.out.println("Moving to " + pathNode.getId());
 	    theEscapeState.moveTo(pathNode);
 	}
+	// moveTo() to getExit()
 	theEscapeState.moveTo(theEscapeState.getExit());
-
-	System.out.println("Forward");
-	pathElement = relaxedStartNode.nextNode;
-	while (pathElement != null) {
-	    System.out.println(pathElement.innerNode.getId());
-	    pathElement = pathElement.nextNode;
-	}		
-	
-	/*
-	List<ComparableNode> startNodes = new ArrayList();
-	List<ComparableEdge> startEdges = new ArrayList();
-	for (Edge edge : startNode.innerNode.getExits()) {
-	    startEdges.add(new ComparableEdge(edge));
-	}
-	Collections.sort(startEdges);
-	for (ComparableEdge edge : startEdges) {
-	    ComparableNode node = new ComparableNode(edge.innerEdge.getDest());
-	    node.distance = startNode.distance + edge.innerEdge.length;
-	    startNodes.add(node);
-	}
-	Collections.sort(startNodes);
-	for (ComparableNode node : startNodes) {
-	    System.out.println("Node ID " + node.innerNode.getId() + " has a distance of " + node.distance);
-	}
-	*/
     }
 }
-	
-	/*
-	List<Node> neighbours = new ArrayList<Node>(firstNode.getNeighbours());
-	List<Edge> edges = new ArrayList();
-	for (Node neighbour : neighbours) {
-	    edges.add(firstNode.getEdge(neighbour));
-	}
-	for (Edge edge : edges) {
-	    System.out.println("The edge from " + firstNode.getId() + " to " + edge.getDest().getId() + " is " + edge.length + " long");
-	}
-	System.out.println("We have " + this.theEscapeState.getTimeRemaining() + " time remaining");
-	this.theEscapeState.moveTo(neighbours.get(0));
-	System.out.println("We have " + this.theEscapeState.getTimeRemaining() + " time remaining");
-	ComparableEdge firstEdge = new ComparableEdge(edges.get(0));
-	ComparableEdge secondEdge = new ComparableEdge(edges.get(1));
-	if (firstEdge.compareTo(secondEdge) < 1) {
-	    System.out.println("Shortest edge is " + firstEdge.innerEdge.length);
-	} else {
-	    System.out.println("Shortest edge is " + secondEdge.innerEdge.length);
-	}
-    }
-
-    /*
-    private(EscapeState state, int pathRange) {
-	Node currentNode = state.getCurrentNode();
-	List<Edge> edges = new ArrayList<Edges>(currentNode.getExits());
-    }
-    */

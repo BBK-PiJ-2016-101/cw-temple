@@ -19,8 +19,8 @@
             </AbstractClasses>
 
             <ConcreteClasses>
-                <Class sourceFile="QuickTest.java">
-                    QuickTest
+                <Class sourceFile="runNewGameTest.java">
+                    runNewGameTest
                 </Class>
             </ConcreteClasses>
 

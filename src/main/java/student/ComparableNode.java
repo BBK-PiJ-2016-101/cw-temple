@@ -3,6 +3,13 @@ package student;
 import java.util.*;
 import game.Node;
 
+  /**
+   * <p> Wrap the Node class and implement Comparable,
+   *     to construct sortable collections of Nodes</p>
+   *
+   * @param Node to wrap
+   */
+
 public class ComparableNode implements Comparable<ComparableNode> {
     public Node innerNode = null;
     public ComparableNode lastNode = null;

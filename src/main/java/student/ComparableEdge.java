@@ -3,6 +3,12 @@ package student;
 import java.util.*;
 import game.Edge;
 
+  /**
+   * <p> Wrap the Edge class and implement Comparable,
+   *     to construct sortable collections of Edge</p>
+   *
+   * @param Edge to wrap
+   */
 public class ComparableEdge implements Comparable<ComparableEdge> {
     public Edge innerEdge = null;
 
