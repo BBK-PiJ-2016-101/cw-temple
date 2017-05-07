@@ -305,11 +305,11 @@
 
         <Package name="student">
             <Stats>
-                <TotalClasses>1</TotalClasses>
-                <ConcreteClasses>1</ConcreteClasses>
+                <TotalClasses>4</TotalClasses>
+                <ConcreteClasses>4</ConcreteClasses>
                 <AbstractClasses>0</AbstractClasses>
                 <Ca>0</Ca>
-                <Ce>2</Ce>
+                <Ce>4</Ce>
                 <A>0</A>
                 <I>1</I>
                 <D>0</D>
@@ -320,14 +320,25 @@
             </AbstractClasses>
 
             <ConcreteClasses>
+                <Class sourceFile="ComparableEdge.java">
+                    student.ComparableEdge
+                </Class>
+                <Class sourceFile="ComparableNode.java">
+                    student.ComparableNode
+                </Class>
                 <Class sourceFile="Explorer.java">
                     student.Explorer
+                </Class>
+                <Class sourceFile="StackedNodeStatus.java">
+                    student.StackedNodeStatus
                 </Class>
             </ConcreteClasses>
 
             <DependsUpon>
                 <Package>game</Package>
+                <Package>java.io</Package>
                 <Package>java.lang</Package>
+                <Package>java.util</Package>
             </DependsUpon>
 
             <UsedBy>

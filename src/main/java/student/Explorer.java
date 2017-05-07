@@ -13,6 +13,9 @@ import java.util.Random;
 import java.util.Stack;
 import java.util.Set;
 
+import java.util.Collections;
+import java.util.Arrays;
+
 public class Explorer {
 
     ExplorationState theExplorationState = null;
@@ -135,7 +138,104 @@ public class Explorer {
 
     public void escape(EscapeState state) {
 	this.theEscapeState = state;
-	Node firstNode = theEscapeState.getCurrentNode();
+	ComparableNode startNode = new ComparableNode(theEscapeState.getCurrentNode());
+	startNode.distance = 0;
+	List<ComparableNode> allNodes = new ArrayList();
+	for (Node node : theEscapeState.getVertices()) {
+	    ComparableNode comparableNode = new ComparableNode(node);
+	    comparableNode.distance = 1000000;
+	    allNodes.add(comparableNode);
+	}
+	allNodes.add(startNode);
+	Collections.sort(allNodes);
+	List<ComparableNode> relaxedNodes = new ArrayList();
+	while (allNodes.size() != 0) {
+	    ComparableNode thisNode = allNodes.remove(0);
+	    for (Node neighbour : thisNode.innerNode.getNeighbours()) {
+		int distance = thisNode.innerNode.getEdge(neighbour).length;
+		for (ComparableNode relaxNode : allNodes) {
+		    if (relaxNode.innerNode == neighbour) {
+			int index = allNodes.indexOf(relaxNode);
+			ComparableNode swap = allNodes.get(index);
+			if (swap.distance > thisNode.distance + distance) {
+			    swap.distance = thisNode.distance + distance;
+			    swap.lastNode = thisNode;
+			    thisNode.nextNode = swap;
+			    allNodes.set(index, swap);
+			}
+		    }
+		}
+	    }
+	    relaxedNodes.add(thisNode);
+	    Collections.sort(allNodes);
+	}
+	Collections.sort(relaxedNodes);
+	ComparableNode relaxedStartNode = null;
+	ComparableNode relaxedExitNode = null;
+	int relaxedExitDistance = 0;
+	for (ComparableNode relaxedNode : relaxedNodes) {
+	    System.out.println("Distance to " + relaxedNode.innerNode.getId() + " is " + relaxedNode.distance);
+	    if (relaxedNode.innerNode == theEscapeState.getExit()) {
+		relaxedExitDistance = relaxedNode.distance;
+		relaxedExitNode = relaxedNode;
+	    }
+	    if (relaxedNode.innerNode == theEscapeState.getCurrentNode()) {
+		relaxedStartNode = relaxedNode;
+	    }
+	}
+	System.out.println("The exit is " + relaxedExitDistance + " distance away");
+        ComparableNode pathElement = relaxedExitNode.lastNode;
+	List<Node> nodePath = new ArrayList();
+	while (pathElement != null) {
+	    System.out.println(pathElement.innerNode.getId() + " is " + (relaxedExitDistance - pathElement.distance) + " away from exit ");
+	    if (pathElement.innerNode.getNeighbours().contains(theEscapeState.getCurrentNode())) {
+		System.out.println("And is a neighbour");
+	    }
+	    nodePath.add(pathElement.innerNode);
+	    pathElement = pathElement.lastNode;
+	}
+	Collections.reverse(nodePath);
+	nodePath.remove(0);
+	/*
+	for (int i = nodePath.size() - 1; i >= 0; i--) { 
+	    theEscapeState.moveTo(nodePath.get(i));
+	    System.out.println("I moved to " + nodePath.get(i).getId());
+	}
+	*/
+	for (Node pathNode : nodePath) {
+	    System.out.println("Moving to " + pathNode.getId());
+	    theEscapeState.moveTo(pathNode);
+	}
+	theEscapeState.moveTo(theEscapeState.getExit());
+
+	System.out.println("Forward");
+	pathElement = relaxedStartNode.nextNode;
+	while (pathElement != null) {
+	    System.out.println(pathElement.innerNode.getId());
+	    pathElement = pathElement.nextNode;
+	}		
+	
+	/*
+	List<ComparableNode> startNodes = new ArrayList();
+	List<ComparableEdge> startEdges = new ArrayList();
+	for (Edge edge : startNode.innerNode.getExits()) {
+	    startEdges.add(new ComparableEdge(edge));
+	}
+	Collections.sort(startEdges);
+	for (ComparableEdge edge : startEdges) {
+	    ComparableNode node = new ComparableNode(edge.innerEdge.getDest());
+	    node.distance = startNode.distance + edge.innerEdge.length;
+	    startNodes.add(node);
+	}
+	Collections.sort(startNodes);
+	for (ComparableNode node : startNodes) {
+	    System.out.println("Node ID " + node.innerNode.getId() + " has a distance of " + node.distance);
+	}
+	*/
+    }
+}
+	
+	/*
 	List<Node> neighbours = new ArrayList<Node>(firstNode.getNeighbours());
 	List<Edge> edges = new ArrayList();
 	for (Node neighbour : neighbours) {
@@ -162,5 +262,3 @@ public class Explorer {
 	List<Edge> edges = new ArrayList<Edges>(currentNode.getExits());
     }
     */
-
-}
